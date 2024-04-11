@@ -1,0 +1,7 @@
+.vscode/
+__pycache__/
+config/settings.json
+logs/
+downloads/
+images/image sources/
+others/

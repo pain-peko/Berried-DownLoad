@@ -1,9 +1,9 @@
 ##TODO:
 # 2. examples: https://github.com/TomSchimansky/CustomTkinter/tree/master/examples
 # 3. docs: https://customtkinter.tomschimansky.com/documentation/
-# 11. fix japanese characters
 # 16. put ffmpeg folder inside _internal and then in installer add path to this folder, but ask user if they want it
-
+# 17. WARNING- if u download japanese \ korean videos, it will have corrupted logs and possible bugs. Recommended to use UTF-8 to avoid this.
+# 18. if ffmpef or yt-dlp not found raise error and print it
 
 import os
 import customtkinter
@@ -13,6 +13,7 @@ from pathlib import Path
 import jsonpickle
 import downloader as BerriedDL
 import threading
+import metadata
 
 
 # ---------------------------------------------------------------------------- #
@@ -186,6 +187,7 @@ class App(customtkinter.CTk):
 
         if url != '':
             BerriedDL.main(media_type, url, dl_dir, self.textbox)
+            #metadata.main()
 
         self.gui_enable()
         

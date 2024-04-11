@@ -1,8 +1,10 @@
 ## TODO:
 # 7. make cool executable, that makes windows shortcut and stuff
-# 8. Transfer subs into folder??
-# 9. make all pathes relative
+# 9. make all pathes relative!!!
 # 10. Change yt-dlp path added when installing the program
+# 11. Create metadata editor as separate file in the end of a program
+#     Use data from created json
+# 12. Rename Subtitles to have Japanese\English and not just number
 
 ## comments
 #'--embed-subs',
@@ -20,6 +22,9 @@ from termcolor import colored
 from datetime import datetime
 from pathlib import Path
 from logbox import Logbox
+import cli_to_api
+
+from pprint import pprint
 
 
 
@@ -29,7 +34,7 @@ from logbox import Logbox
 DETAILED_DEBUG = True
 PATH_ROOT = os.path.dirname(os.path.realpath(__file__))
 PATH_DL = os.path.join(PATH_ROOT, "downloads")
-YT_DLP_PATH = "D:\Soft\yt-dlp\yt-dlp.exe" 
+YT_DLP_PATH = "D:\DSoftware\yt-dlp\yt-dlp.exe" 
 
 
 
@@ -107,6 +112,11 @@ def show_list_cmd(url):
 #                                    Execute                                   #
 # ---------------------------------------------------------------------------- #
 def execute(cmd, si):
+    print('\nThe arguments passed translate to:\n')
+    pprint(cli_to_api.cli_to_api(cmd))
+    print('\nCombining these with the CLI defaults gives:\n')
+    pprint(cli_to_api.cli_to_api(cmd, True))
+
     popen = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, universal_newlines=True, startupinfo=si)
     for stdout_line in iter(popen.stdout.readline, ""):
         yield stdout_line 
@@ -147,7 +157,7 @@ def main(media_type, url, dl_dir, textbox=False):
     Logbox.dump(textbox, 'info_over')
     Logbox.dump(textbox, 'newline')
 
-    # Download chose format
+    # Download chosen format
     Logbox.dump(textbox, 'dl_start')
     f.write('\n\n\n')
     if (media_type != 'both'):
@@ -171,9 +181,9 @@ def main(media_type, url, dl_dir, textbox=False):
     for _ in (True,):
         with open(log_file, 'r') as filedata:
             for line in filedata:
-                if (f"to: {dl_dir}" in line.replace('\\', '/')):
-                    result = line.replace('\\', '/').split(dl_dir)
-                    title = result[1].split('/')
+                if (f"to: {dl_dir}" in line):
+                    result = line.split(dl_dir)
+                    title = result[1].split('\\')
                     title = title[1]
                     name_found = True
                     break
