@@ -1,8 +1,18 @@
-from datetime import datetime
+## TODO:
+# 7. make cool executable, that makes windows shortcut and stuff
+# 9. make all pathes relative!!!
+# 10. Change yt-dlp path added when installing the program
+# 11. Create metadata editor as separate file in the end of a program
+#     Use data from created json
+# 12. Rename Subtitles to have Japanese\English and not just number
+
+
 import os
 import yt_dlp
-from logbox2 import Logbox
 from pathlib import Path
+from datetime import datetime
+from logbox2 import Logbox
+
 
 # ---------------------------------------------------------------------------- #
 #                                    Consts                                    #
@@ -24,13 +34,6 @@ def my_hook(d):
 # ---------------------------------------------------------------------------- #
 #                                   dl params                                  #
 # ---------------------------------------------------------------------------- #
-def gen_info_opts(logfile, textbox):
-    ydl_opts = {
-        'logger': Logbox(logfile, textbox)
-    }
-
-    return ydl_opts
-
 def gen_opts(dl_dir, logfile, textbox):
     ydl_opts = {
         'verbose': True,                                                    # full debug
