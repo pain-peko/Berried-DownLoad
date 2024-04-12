@@ -11,7 +11,7 @@ from PIL import Image
 import json
 from pathlib import Path
 import jsonpickle
-import downloader2 as BerriedDL
+import downloader as BerriedDL
 import threading
 import metadata
 
