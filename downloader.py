@@ -11,7 +11,8 @@ import os
 import yt_dlp
 from pathlib import Path
 from datetime import datetime
-from logbox2 import Logbox
+from logbox import Logbox
+import metadata
 
 
 # ---------------------------------------------------------------------------- #
@@ -19,16 +20,29 @@ from logbox2 import Logbox
 # ---------------------------------------------------------------------------- #
 PATH_ROOT = os.path.dirname(os.path.realpath(__file__))
 PATH_DL = os.path.join(PATH_ROOT, "downloads")
-filename = ''
+g_targetdir = ''
+g_targettitle = ''
+g_targetaudio_codec = ''
+
 
 
 # ---------------------------------------------------------------------------- #
 #                                Progress hooks                                #
 # ---------------------------------------------------------------------------- #
-def my_hook(d):
-    if d['status'] == 'started':
-        filename = d['filename']
-        print(filename)
+def progress_hook(d):
+    if d['status'] == 'finished':
+        filepath = d['filename']
+        title = os.path.basename(filepath)
+
+        global g_targetdir, g_targettitle, g_targetaudio_codec
+        g_targetdir = os.path.dirname(filepath)
+        g_targettitle = title.split('.')[0]
+
+def postprocess_hook(d):
+    if d['status'] == 'finished':
+        if d['postprocessor'] == 'ExtractAudio':
+            global g_targetaudio_codec
+            g_targetaudio_codec = d['info_dict']['acodec']
 
 
 # ---------------------------------------------------------------------------- #
@@ -40,7 +54,8 @@ def gen_opts(dl_dir, logfile, textbox):
         'ignoreerrors': 'only_download',                                    # Do not stop on postprocessing errors
         'outtmpl': {'default': f'{dl_dir}\%(title)s\%(title)s.%(ext)s'},    # Output path
 
-        'progress_hooks': [my_hook],
+        'progress_hooks': [progress_hook],
+        'postprocessor_hooks': [postprocess_hook],
         'logger': Logbox(logfile, textbox),
 
         'writethumbnail': True,
@@ -110,7 +125,7 @@ def gen_video_opts(dl_dir, logfile, textbox):
 #                                     main                                     #
 # ---------------------------------------------------------------------------- #
 
-def main(media_type, url, dl_dir, textbox=False):
+def main(media_type, url, dl_dir, textbox=False, edit_metadata=False):
 
     # open log file
     now = datetime.now()
@@ -140,6 +155,9 @@ def main(media_type, url, dl_dir, textbox=False):
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             ydl.download(url)
         Logbox(file, textbox).debug('', True)
+
+        if edit_metadata:
+            metadata.main(f'{g_targetdir}/{g_targettitle}.{g_targetaudio_codec}')
     
     # download video and metadata
     if media_type != 'audio':
@@ -148,8 +166,16 @@ def main(media_type, url, dl_dir, textbox=False):
             ydl.download(url)
         Logbox(file, textbox).debug('', True)
 
-    new_log_file = 'hello world'
-    Logbox(file, textbox).debug(f'Download finished, detailed log saved to: {new_log_file}')
+    # close log
+    file.close()
+
+    # rename log
+    new_logfile = f'{log_dir_path}\\[{now[0]}] [{now[1]}] {g_targettitle}.log'
+    os.rename(logfile, new_logfile)
+
+    # success
+    file = open(new_logfile, "a")
+    Logbox(file, textbox).debug(f'Download finished, detailed log saved to: {new_logfile}')
     file.close()
         
 
@@ -157,5 +183,5 @@ if __name__ == "__main__":
     dl_dir = PATH_DL
     url = 'https://youtu.be/xyx8DMlUAQ4?si=vKoLdn5fW0gsffpc'
     #url = 'https://youtu.be/d3UTywBDSW4?si=s-hgg1mRqQJO4tVg'
-    main('both', url, dl_dir)
+    main('both', url, dl_dir, False, True)
     

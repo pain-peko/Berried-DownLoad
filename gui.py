@@ -13,7 +13,6 @@ from pathlib import Path
 import jsonpickle
 import downloader as BerriedDL
 import threading
-import metadata
 
 
 # ---------------------------------------------------------------------------- #
@@ -186,8 +185,7 @@ class App(customtkinter.CTk):
         self.gui_disable()
 
         if url != '':
-            BerriedDL.main(media_type, url, dl_dir, self.textbox)
-            #metadata.main()
+            BerriedDL.main(media_type, url, dl_dir, self.textbox, True)
 
         self.gui_enable()
         
