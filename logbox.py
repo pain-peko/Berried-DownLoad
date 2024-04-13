@@ -44,6 +44,9 @@ class Logbox:
         self.progress_bar = False
 
     def debug(self, msg, print_this=False):
+        if msg is None:
+            return
+        
         msg = msg + '\n'
         
         self.file.write(escape_ansi(msg))

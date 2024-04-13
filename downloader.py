@@ -1,10 +1,9 @@
 ## TODO:
 # 7. make cool executable, that makes windows shortcut and stuff
-# 9. make all pathes relative!!!
-# 10. Change yt-dlp path added when installing the program
-# 11. Create metadata editor as separate file in the end of a program
-#     Use data from created json
 # 12. Rename Subtitles to have Japanese\English and not just number
+# 13. Ignore live chat (make const)
+# 14. Playlist support - folder in downloads + the right name for logfile as playlist name + correct display of logs while playlist downloading
+# 15. get rid of all prints
 
 
 import os
@@ -23,7 +22,6 @@ PATH_DL = os.path.join(PATH_ROOT, "downloads")
 g_targetdir = ''
 g_targettitle = ''
 g_targetaudio_codec = ''
-
 
 
 # ---------------------------------------------------------------------------- #
@@ -87,8 +85,8 @@ def gen_audio_opts(dl_dir, logfile, textbox):
     })
 
     ydl_opts['postprocessors'].append({
-        'key': 'EmbedThumbnail',            # Insert Thumbnail and without keeping it as a separate file
-        'already_have_thumbnail': False
+        'key': 'EmbedThumbnail',            # Insert thumbnail and keep it as separate as well
+        'already_have_thumbnail': True
     })
     
     return ydl_opts
@@ -138,7 +136,7 @@ def main(media_type, url, dl_dir, textbox=False, edit_metadata=False):
         log_dir_path = f'{PATH_ROOT}\\logs'
     Path(log_dir_path).mkdir(parents=True, exist_ok=True)
     logfile = f'{log_dir_path}\\[{now[0]}] [{now[1]}] example_name.log'
-    file = open(logfile, "w")
+    file = open(logfile, "w", encoding='utf-8')
 
     # print available formats
     with yt_dlp.YoutubeDL() as ydl:
@@ -174,7 +172,7 @@ def main(media_type, url, dl_dir, textbox=False, edit_metadata=False):
     os.rename(logfile, new_logfile)
 
     # success
-    file = open(new_logfile, "a")
+    file = open(new_logfile, "a", encoding='utf-8')
     Logbox(file, textbox).debug(f'Download finished, detailed log saved to: {new_logfile}')
     file.close()
         
@@ -183,5 +181,5 @@ if __name__ == "__main__":
     dl_dir = PATH_DL
     url = 'https://youtu.be/xyx8DMlUAQ4?si=vKoLdn5fW0gsffpc'
     #url = 'https://youtu.be/d3UTywBDSW4?si=s-hgg1mRqQJO4tVg'
-    main('both', url, dl_dir, False, True)
+    main('audio', url, dl_dir, False, True)
     

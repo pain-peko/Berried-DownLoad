@@ -2,7 +2,6 @@
 # 2. examples: https://github.com/TomSchimansky/CustomTkinter/tree/master/examples
 # 3. docs: https://customtkinter.tomschimansky.com/documentation/
 # 16. put ffmpeg folder inside _internal and then in installer add path to this folder, but ask user if they want it
-# 17. WARNING- if u download japanese \ korean videos, it will have corrupted logs and possible bugs. Recommended to use UTF-8 to avoid this.
 # 18. if ffmpef or yt-dlp not found raise error and print it
 
 import os
@@ -185,7 +184,23 @@ class App(customtkinter.CTk):
         self.gui_disable()
 
         if url != '':
-            BerriedDL.main(media_type, url, dl_dir, self.textbox, True)
+            try:
+                BerriedDL.main(media_type, url, dl_dir, self.textbox, True)
+            except Exception as err:
+                self.textbox.configure(state='normal')
+                self.textbox.insert("end", "\n", 'highlight4')
+                self.textbox.insert("end", "\n", 'highlight4')
+                self.textbox.insert("end", "Something went wrong! - better restart the app\n", 'highlight4')
+                self.textbox.insert("end", "\n", 'highlight4')
+                self.textbox.insert("end", "If this issue reproduces, please report it: https://github.com/pain-peko/Berried_DL/issues\n", 'highlight4')
+                self.textbox.insert("end", "\n", 'highlight4')
+                self.textbox.insert("end", f"{type(err)}\n", 'highlight4')
+                self.textbox.insert("end", f"{err.args}\n", 'highlight4')
+                self.textbox.insert("end", f"{err}\n", 'highlight4')
+                self.textbox.insert("end", "\n", 'highlight4')
+                self.textbox.insert("end", "\n", 'highlight4')
+                self.textbox.see("end")
+                self.textbox.configure(state='disabled')
 
         self.gui_enable()
         
