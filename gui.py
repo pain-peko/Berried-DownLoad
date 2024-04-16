@@ -159,6 +159,7 @@ class App(customtkinter.CTk):
         self.textbox.tag_config('highlight3', font=("Consolas", 14), foregroun="#a2d9a1") #green
         self.textbox.tag_config('highlight4', foregroun="#F44747") # red
         self.textbox.tag_config('highlight5', foregroun="#47f49e") # green
+        self.textbox.tag_config('highlight6', foregroun="#F4A261") # orange
         
         self.textbox.insert("0.0", "Download Log:\n", 'info_label')
         

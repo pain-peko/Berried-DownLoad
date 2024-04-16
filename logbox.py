@@ -59,7 +59,10 @@ class Logbox:
 
         self.file.write(escape_ansi(msg))
 
-        textbox_append(self.textbox, msg)
+        if '[youtube:tab] Incomplete data received.' in msg:
+            return
+        else:
+            textbox_append(self.textbox, msg)
 
     def error(self, msg):
         msg = msg + '\n'
@@ -114,7 +117,31 @@ class Logbox:
             textbox_append(self.textbox, '\n')
             textbox_append(self.textbox, str, 'highlight5')
             return
+        
+        # playlists
+        if '[youtube:tab] Extracting URL: ' in str:
+            textbox_append(self.textbox, str)
+            return
+        
+        if '[youtube:tab] Playlist' in str:
+            textbox_append(self.textbox, str, 'highlight1')
+            return
 
+        if '[download] Downloading item' in str:
+            strs = str.split('item')
+            strs[0] = '[download] Webpage for item'
+            textbox_append(self.textbox, strs[0] + strs[1], 'highlight6')
+            return
+
+        if '[youtube] Extracting URL: ' in str:
+            textbox_append(self.textbox, str)
+            return
+        
+        if '[download] Prepearing item' in str:
+            textbox_append(self.textbox, str, 'highlight6')
+            return
+
+        # progress bar
         if ('[download]' in str) and (('%' in str) or ('(frag' in str)):
             if '100%' in str:
                 # first progress bar is already 100% protection
@@ -136,6 +163,7 @@ class Logbox:
             textbox_replace_lastline(self.textbox, str, 'highlight4')
             return
         
+        # finished
         if 'has already been downloaded' in str:
             textbox_append(self.textbox, '\n')
             textbox_append(self.textbox, str, 'highlight5')

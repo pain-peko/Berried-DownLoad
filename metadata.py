@@ -3,8 +3,7 @@ import os
 from pathlib import Path
 import mutagen
 from mutagen.oggopus import OggOpus
-from mutagen.flac import FLAC
-from mutagen.flac import Picture, error as FLACError
+from mutagen.flac import Picture
 from PIL import Image
 
 OPTIONS = True
@@ -47,9 +46,12 @@ def main(name):
     audio["ORIGIN WEBSITE"] = audio["PURL"]
     audio.pop('PURL')
 
-    # Description
-    audio["DESCRIPTION"] = audio["SYNOPSIS"]
+    # Delete description
+    audio.pop('DESCRIPTION')
     audio.pop('SYNOPSIS')
+
+    # Delete language
+    audio.pop('LANGUAGE')
 
     # misc
     audio["QUALITY"] = u'Medium'
@@ -94,8 +96,3 @@ def main(name):
         os.remove(img_path)
 
     audio.save()
-
-if __name__ == "__main__":
-    main("downloads\\What an amazing swing.opus")
-    #main("downloads\稲葉曇『ラグトレイン』Vo. 歌愛ユキ\稲葉曇『ラグトレイン』Vo. 歌愛ユキ.opus")
-    #main('downloads\Mili - In Hell We Live\Mili - In Hell We Live.opus')

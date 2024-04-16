@@ -4,6 +4,8 @@
 # 13. Ignore live chat (make const)
 # 14. Playlist support - folder in downloads + the right name for logfile as playlist name + correct display of logs while playlist downloading
 # 15. get rid of all prints
+# 16. delete description metadata
+# 17. delete language
 
 
 import os
@@ -11,6 +13,7 @@ import yt_dlp
 from pathlib import Path
 from datetime import datetime
 from logbox import Logbox
+from info_logbox import Info_Logbox
 import metadata
 
 
@@ -46,11 +49,25 @@ def postprocess_hook(d):
 # ---------------------------------------------------------------------------- #
 #                                   dl params                                  #
 # ---------------------------------------------------------------------------- #
-def gen_opts(dl_dir, logfile, textbox):
+def gen_logger_opts(logfile, textbox):
+    ydl_opts = {
+        'logger': Logbox(logfile, textbox)
+    }
+
+    return ydl_opts
+
+def gen_logger_opts2(logfile, textbox):
+    ydl_opts = {
+        'logger': Info_Logbox(logfile, textbox)
+    }
+
+    return ydl_opts
+
+
+def gen_opts(dl_dir, logfile, textbox, playlist_name):
     ydl_opts = {
         'verbose': True,                                                    # full debug
         'ignoreerrors': 'only_download',                                    # Do not stop on postprocessing errors
-        'outtmpl': {'default': f'{dl_dir}\%(title)s\%(title)s.%(ext)s'},    # Output path
 
         'progress_hooks': [progress_hook],
         'postprocessor_hooks': [postprocess_hook],
@@ -69,11 +86,17 @@ def gen_opts(dl_dir, logfile, textbox):
                 'add_metadata': True
             }]
     }
-    
+
+    # Output path
+    if playlist_name == None:
+        ydl_opts['outtmpl'] = {'default': f'{dl_dir}\\%(title)s\\%(title)s.%(ext)s'}
+    else:
+        ydl_opts['outtmpl'] = {'default': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\%(title)s.%(ext)s'}
+
     return ydl_opts
 
-def gen_audio_opts(dl_dir, logfile, textbox):
-    ydl_opts = gen_opts(dl_dir, logfile, textbox)
+def gen_audio_opts(dl_dir, logfile, textbox, playlist_name):
+    ydl_opts = gen_opts(dl_dir, logfile, textbox, playlist_name)
 
     ydl_opts['format'] = 'bestaudio'
 
@@ -91,15 +114,15 @@ def gen_audio_opts(dl_dir, logfile, textbox):
     
     return ydl_opts
 
-def gen_video_opts(dl_dir, logfile, textbox):
-    ydl_opts = gen_opts(dl_dir, logfile, textbox)
+def gen_video_opts(dl_dir, logfile, textbox, playlist_name):
+    ydl_opts = gen_opts(dl_dir, logfile, textbox, playlist_name)
 
     ydl_opts['format'] = 'bestvideo*+bestaudio/best'
 
     ydl_opts['final_ext'] = 'mkv'
 
     # Download all non-automatic subs, description, metadata etc
-    ydl_opts['subtitleslangs'] = ['all']
+    ydl_opts['subtitleslangs'] = ['all', '-live_chat']
     ydl_opts['writethumbnail'] = True
     ydl_opts['writeannotations'] = True
     ydl_opts['writedescription'] = True
@@ -123,7 +146,7 @@ def gen_video_opts(dl_dir, logfile, textbox):
 #                                     main                                     #
 # ---------------------------------------------------------------------------- #
 
-def main(media_type, url, dl_dir, textbox=False, edit_metadata=False):
+def main(media_type, playlist_url, dl_dir, textbox=False, edit_metadata=False):
 
     # open log file
     now = datetime.now()
@@ -138,37 +161,65 @@ def main(media_type, url, dl_dir, textbox=False, edit_metadata=False):
     logfile = f'{log_dir_path}\\[{now[0]}] [{now[1]}] example_name.log'
     file = open(logfile, "w", encoding='utf-8')
 
-    # print available formats
-    with yt_dlp.YoutubeDL() as ydl:
-        info = ydl.extract_info(url, download=False)
-        info = ydl.render_formats_table(info)
 
-        lbox = Logbox(file, textbox)
-        lbox.debug(info, True)
-        lbox.debug('', True)
+    # Detect playlist
+    playlist_name = None
+    ydl_opts = gen_logger_opts(file, textbox)
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(playlist_url, download=False)
+        if info['extractor'] == 'youtube:tab':
+            playlist_name = info['title']
 
-    # download audio
-    if media_type != 'video':
-        ydl_opts = gen_audio_opts(dl_dir, file, textbox)
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download(url)
-        Logbox(file, textbox).debug('', True)
-
-        if edit_metadata:
-            metadata.main(f'{g_targetdir}/{g_targettitle}.{g_targetaudio_codec}')
+            urls = []
+            for entry in info['entries']:
+                urls.append(entry['webpage_url'])
+            Logbox(file, textbox).debug('', True)
+        else:
+            urls = [playlist_url]
     
-    # download video and metadata
-    if media_type != 'audio':
-        ydl_opts = gen_video_opts(dl_dir, file, textbox)
+    for url_index, url in enumerate(urls):
+        # add new lines for playlists
+        if playlist_name != None:
+            Logbox(file, textbox).debug('', True)
+            Logbox(file, textbox).debug('', True)
+            Logbox(file, textbox).debug(f'[download] Prepearing item {url_index + 1} of {len(urls)}')
+
+        # print available formats
+        ydl_opts = gen_logger_opts2(file, textbox)
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download(url)
-        Logbox(file, textbox).debug('', True)
+            info = ydl.extract_info(url, download=False)
+            info = ydl.render_formats_table(info)
+
+            lbox = Logbox(file, textbox)
+            lbox.debug(info, True)
+            lbox.debug('', True)
+
+        # download audio
+        if media_type != 'video':
+            ydl_opts = gen_audio_opts(dl_dir, file, textbox, playlist_name)
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download(url)
+            Logbox(file, textbox).debug('', True)
+
+            if edit_metadata:
+                metadata.main(f'{g_targetdir}/{g_targettitle}.{g_targetaudio_codec}')
+        
+        # download video and metadata
+        if media_type != 'audio':
+            ydl_opts = gen_video_opts(dl_dir, file, textbox, playlist_name)
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download(url)
+            Logbox(file, textbox).debug('', True)
+
 
     # close log
     file.close()
 
     # rename log
-    new_logfile = f'{log_dir_path}\\[{now[0]}] [{now[1]}] {g_targettitle}.log'
+    if playlist_name == None:
+        new_logfile = f'{log_dir_path}\\[{now[0]}] [{now[1]}] {g_targettitle}.log'
+    else:
+        new_logfile = f'{log_dir_path}\\[{now[0]}] [{now[1]}] Playlist - {playlist_name}.log'
     os.rename(logfile, new_logfile)
 
     # success
@@ -179,7 +230,18 @@ def main(media_type, url, dl_dir, textbox=False, edit_metadata=False):
 
 if __name__ == "__main__":
     dl_dir = PATH_DL
+
+    # playlist test
+    url = 'https://www.youtube.com/playlist?list=PLADb_O1pgfZsZn_vjEpKV5DFRxNABA0k5'
+    main('both', url, dl_dir, False, True)
+
+    # single video test
     url = 'https://youtu.be/xyx8DMlUAQ4?si=vKoLdn5fW0gsffpc'
-    #url = 'https://youtu.be/d3UTywBDSW4?si=s-hgg1mRqQJO4tVg'
+    main('both', url, dl_dir, False, True)
+
+    url = 'https://youtu.be/3BrtCYZyOXE?si=P8vfDmX9NYEcJAbJ'
     main('audio', url, dl_dir, False, True)
+
+    url = 'https://youtu.be/9kQ2GtvDV3s?si=zqScgDDiBvFpkgjC'
+    main('video', url, dl_dir, False, True)
     
