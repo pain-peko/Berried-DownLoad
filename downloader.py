@@ -1,11 +1,6 @@
 ## TODO:
-# 7. make cool executable, that makes windows shortcut and stuff
-# 12. Rename Subtitles to have Japanese\English and not just number
-# 13. Ignore live chat (make const)
-# 14. Playlist support - folder in downloads + the right name for logfile as playlist name + correct display of logs while playlist downloading
-# 15. get rid of all prints
-# 16. delete description metadata
-# 17. delete language
+# 1. clean up and make cool executable, that makes windows shortcut and stuff
+
 
 
 import os
@@ -22,6 +17,11 @@ import metadata
 # ---------------------------------------------------------------------------- #
 PATH_ROOT = os.path.dirname(os.path.realpath(__file__))
 PATH_DL = os.path.join(PATH_ROOT, "downloads")
+
+
+# ---------------------------------------------------------------------------- #
+#                                    Globals                                   #
+# ---------------------------------------------------------------------------- #
 g_targetdir = ''
 g_targettitle = ''
 g_targetaudio_codec = ''
@@ -89,9 +89,19 @@ def gen_opts(dl_dir, logfile, textbox, playlist_name):
 
     # Output path
     if playlist_name == None:
-        ydl_opts['outtmpl'] = {'default': f'{dl_dir}\\%(title)s\\%(title)s.%(ext)s'}
+        ydl_opts['outtmpl'] = {'default': f'{dl_dir}\\%(title)s\\%(title)s.%(ext)s',
+                                'thumbnail': f'{dl_dir}\\%(title)s\\%(title)s.%(ext)s',
+                                'subtitle': f'{dl_dir}\\%(title)s\\subs\\%(title)s.%(ext)s',
+                                'description': f'{dl_dir}\\%(title)s\\misc\\%(title)s.%(ext)s',
+                                'infojson': f'{dl_dir}\\%(title)s\\misc\\%(title)s.%(ext)s',
+                                'link': f'{dl_dir}\\%(title)s\\misc\\%(title)s.%(ext)s'}
     else:
-        ydl_opts['outtmpl'] = {'default': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\%(title)s.%(ext)s'}
+        ydl_opts['outtmpl'] = {'default': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\%(title)s.%(ext)s',
+                                'thumbnail': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\%(title)s.%(ext)s',
+                                'subtitle': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\subs\\%(title)s.%(ext)s',
+                                'description': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\misc\\%(title)s.%(ext)s',
+                                'infojson': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\misc\\%(title)s.%(ext)s',
+                                'link': f'{dl_dir}\\Playlist - {playlist_name}\\%(title)s\\misc\\%(title)s.%(ext)s'}
 
     return ydl_opts
 

@@ -1,9 +1,3 @@
-##TODO:
-# 2. examples: https://github.com/TomSchimansky/CustomTkinter/tree/master/examples
-# 3. docs: https://customtkinter.tomschimansky.com/documentation/
-# 16. put ffmpeg folder inside _internal and then in installer add path to this folder, but ask user if they want it
-# 18. if ffmpef or yt-dlp not found raise error and print it
-
 import os
 import customtkinter
 from PIL import Image
